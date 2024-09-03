@@ -14,11 +14,10 @@ const createJobPostsModel = async (jobPostFields) => {
         `;
 
         const [result] = await pool.query(query, [companyName, role, technologies, experience, location, graduation, languages, noticePeriod, employer_id, 'Denied']);
-        
+
         return { id: result.insertId, ...jobPostFields };
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 
@@ -29,8 +28,7 @@ const getJobPostsByEmployerIdModel = async (employer_id) => {
         const [results] = await pool.query(query, [employer_id]);
         return results;
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 
@@ -41,8 +39,7 @@ const getJobPostByIdModel = async (job_id) => {
         const [results] = await pool.query(query, [job_id]);
         return results[0];
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 
@@ -58,12 +55,14 @@ const updateJobPostModel = async (job_id, updateFields) => {
             SET companyName = ?, role = ?, technologies = ?, experience = ?, location = ?, graduation = ?, languages = ?, noticePeriod = ?
             WHERE id = ?
         `;
-        
+
         const [result] = await pool.query(query, [companyName, role, technologies, experience, location, graduation, languages, noticePeriod, job_id]);
-        return result;
+
+        if (result.affectedRows > 0) {
+            return { message: "job posts updated successfully" };
+        };
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 
@@ -71,11 +70,14 @@ const updateJobPostModel = async (job_id, updateFields) => {
 const deleteJobPostModel = async (job_id, employer_id) => {
     try {
         const query = `DELETE FROM job_posts WHERE id = ? AND employer_id = ?`;
+
         const [result] = await pool.query(query, [job_id, employer_id]);
-        return result;
+
+        if (result.affectedRows > 0) {
+            return { message: "job posts deleted successfully" };
+        }
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 
@@ -100,11 +102,10 @@ const getJobAppliedPostsModel = async (employer_id) => {
         WHERE 
        status = 'Applied' AND employer_id = ? `;
 
-       const [results] = await pool.query(query, [employer_id]);
-       return results;
+        const [results] = await pool.query(query, [employer_id]);
+        return results;
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 
@@ -156,8 +157,7 @@ const updateJobAppliedStatusModel = async (jobId, employeeDetails) => {
 
         return result;
     } catch (err) {
-        console.error(err);
-        throw err;
+        throw err.message;
     }
 };
 

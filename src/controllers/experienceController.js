@@ -9,7 +9,7 @@ const workingExperienceController = async (req, res) => {
         const fieldsUpdate = { technologies, experience, location, graduation, languages, noticePeriod };
         const result = await workingExperienceService.updateOrCreateWorkingExperience(employee_id, fieldsUpdate);
 
-        res.status(200).json({ workingExperience: result });
+        res.status(200).json(result);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }

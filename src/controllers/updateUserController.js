@@ -3,7 +3,6 @@ const updateUserService = require('../services/updateUserServices')
 
 const updateUserDetails = async (req, res) => {
   const { role, id } = req.user;
-
   try {
     const error = validationResult(req).formatWith(({ msg }) => {
       return { msg };
@@ -25,9 +24,9 @@ const updateUserDetails = async (req, res) => {
       return res.status(400).json({ error: 'Invalid role' });
     }
 
-    await updateUserService.updateUserDetailsService(role, id, updateFields);
+    const result = await updateUserService.updateUserDetailsService(role, id, updateFields);
 
-    res.status(200).json({ message:"Updated  Successfully"});
+    res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -1,6 +1,30 @@
 const pool = require('../db/connection');
 const bcrypt = require('bcrypt');
 
+const checkUserIdExist = async (userId) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [userId]);
+
+    if (rows.length === 0) {
+      return null;
+    }
+    return rows[0];
+
+  } catch (error) {
+    throw error;
+  }
+}
+
+const checkEmployeeIdExists = async (employee_id) => {
+  const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [employee_id]);
+  return rows[0];
+};
+
+const checkEmployerIdExists = async (employer_id) => {
+  const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [employer_id]);
+  return rows[0];
+};
+
 const createUserModel = async (role, email, password, mobileNumber, companyName, companyType, address, firstName, lastName, otp) => {
   try {
 
@@ -14,7 +38,7 @@ const createUserModel = async (role, email, password, mobileNumber, companyName,
       (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const [result] = await pool.query(query, [role, email, hashedPassword, mobileNumber, companyName, companyType, JSON.stringify(address), firstName, lastName, otp]);
+    const [result] = await pool.query(query, [role, email, hashedPassword, mobileNumber, companyName, companyType, address, firstName, lastName, otp]);
 
     return { id: result.insertId, role, email, password: hashedPassword, mobileNumber, companyName, companyType, address, firstName, lastName, otp };
   } catch (err) {
@@ -93,6 +117,7 @@ const checkPasswordMatch = async (password, hashedPassword) => {
 };
 
 
+
 module.exports = {
   createUserModel,
   checkEmailExist,
@@ -100,5 +125,8 @@ module.exports = {
   updateUserVerification,
   otpForPasswordReset,
   updateUserPassword,
-  checkPasswordMatch
+  checkPasswordMatch,
+  checkUserIdExist,
+  checkEmployeeIdExists,
+  checkEmployerIdExists
 };

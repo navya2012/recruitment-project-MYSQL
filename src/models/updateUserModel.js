@@ -1,5 +1,24 @@
 const pool = require('../db/connection');
 
+const checkUserIdAndRoleExist = async (userId, role) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM userDetails WHERE id = ? AND role = ?',
+      [userId, role]
+    );
+
+    if (rows.length === 0) {
+      return null;
+    }
+    return rows[0];
+
+  } catch (error) {
+    throw error.message;
+  }
+};
+
+
+
 // Update Employee Details
 const updateEmployeeDetails = async (id, updateFields) => {
   const query = `
@@ -23,12 +42,15 @@ const updateEmployeeDetails = async (id, updateFields) => {
     id
   ]);
 
-  return result.affectedRows > 0;
-};
-
+  if (result.affectedRows > 0) {
+    return { message: "user details updated successfully" };
+  };
+}
 
 // Update Employer Details
 const updateEmployerDetails = async (id, updateFields) => {
+
+
   const query = `
     UPDATE userDetails 
     SET 
@@ -44,17 +66,21 @@ const updateEmployerDetails = async (id, updateFields) => {
     updateFields.companyName || null,
     updateFields.mobileNumber || null,
     updateFields.companyType || null,
-    updateFields.address ? JSON.stringify(updateFields.address) : null,
+    updateFields.address || null,
     updateFields.employeesCount || null,
     updateFields.headQuarters || null,
     id
   ]);
 
-  return result.affectedRows > 0;
+  if (result.affectedRows > 0) {
+    return { message: "user details updated successfully" };
+  }
+
 };
 
 
 module.exports = {
   updateEmployeeDetails,
-  updateEmployerDetails
+  updateEmployerDetails,
+  checkUserIdAndRoleExist
 };

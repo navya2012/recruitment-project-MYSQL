@@ -10,7 +10,7 @@ const createJobPostsController = async (req, res) => {
         const fieldsUpdate = { companyName, role, technologies, experience, location, graduation, languages, noticePeriod };
         const newJobPostsData = await jobPostsService.createJobPostsService(employer_id, fieldsUpdate);
 
-        res.status(200).json({ message: 'job posts created', newJobPostsData });
+        res.status(200).json(newJobPostsData);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -22,14 +22,9 @@ const getJobPostsController = async (req, res) => {
 
     try {
         const jobPosts = await jobPostsService.getJobPostsByEmployerIdService(employer_id);
-        if (jobPosts.length > 0) {
-
-            res.status(200).json({ jobPosts });
-        } else {
-            res.status(404).json({ message: 'No job posts found for this employer.' });
-        }
+        res.status(200).json(jobPosts);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json(err.message);
     }
 };
 
@@ -43,15 +38,14 @@ const updateJobPostController = async (req, res) => {
 
     try {
         if (!job_id) {
-            return res.status(404).json({ error: 'Job Post ID is not provided' });
+            return res.status(404).json({ error: 'Job Post ID is not found' });
         }
 
         const updateFields = { companyName, role, technologies, experience, location, graduation, languages, noticePeriod };
         const result = await jobPostsService.updateJobPostService(job_id, employer_id, updateFields);
 
-        if (result.affectedRows > 0) {
-            res.status(200).json({ message: "Updated Job Post Successfully" });
-        }
+        res.status(200).json(result);
+
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -65,12 +59,8 @@ const deleteJobPostController = async (req, res) => {
     try {
         const result = await jobPostsService.deleteJobPostService(job_id, employer_id);
 
-        if (result.affectedRows > 0) {
+        res.status(200).json(result);
 
-            res.status(200).json({ message: "Job post successfully deleted." });
-        } else {
-            res.status(404).json({ message: "Job post not found" });
-        }
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -84,7 +74,7 @@ const getJobAppliedPostsController = async (req, res) => {
     try {
         const jobPosts = await jobPostsService.getJobAppliedPostsService(employer_id);
 
-        res.status(200).json({ jobPosts });
+        res.status(200).json(jobPosts);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -96,7 +86,7 @@ const getJobPostsControllerByEmployee = async (req, res) => {
     try {
         const jobPosts = await jobPostsService.getAllJobPostsService();
 
-        res.status(200).json({ jobPosts });
+        res.status(200).json(jobPosts);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

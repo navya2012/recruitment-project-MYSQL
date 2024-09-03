@@ -1,8 +1,14 @@
 const workingExperienceModel = require('../models/experienceModel');
+const { checkEmployeeIdExists } = require('../models/userModel');
 
 const updateOrCreateWorkingExperience = async (employee_id, updateFields) => {
     try {
-        let workingExperienceData = await workingExperienceModel.findWorkingExperienceByEmployeeId(employee_id);
+        const employeeExists = await checkEmployeeIdExists(employee_id);
+        if (!employeeExists) {
+            return { message: "Employee ID not found" };
+        }
+
+        let workingExperienceData = await workingExperienceModel.checkEmployeeIdExperienceData(employee_id);
 
         if (workingExperienceData) {
             workingExperienceData = await workingExperienceModel.updateWorkingExperience(employee_id, updateFields);
@@ -21,6 +27,7 @@ const updateOrCreateWorkingExperience = async (employee_id, updateFields) => {
         throw err;
     }
 };
+
 
 module.exports = {
     updateOrCreateWorkingExperience

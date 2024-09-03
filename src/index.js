@@ -9,7 +9,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
-const port = 5500
+const port = 5000
 
 //db connection
 require('./db/connection')

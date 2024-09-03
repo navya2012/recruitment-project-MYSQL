@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const pool = require('../db/connection');
+const { checkUserIdExist } = require('../models/userModel');
+
 
 const authUserMiddleware = async (req, res, next) => {
     const { authorization } = req.headers
@@ -18,16 +19,16 @@ const authUserMiddleware = async (req, res, next) => {
             return res.status(401).json({ error: "Invalid token" });
         }
 
-        const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [decoded.id]);
-
-        if (rows.length === 0) {
-            return res.status(401).json({ error: `${decoded.role} Id not found` });
+        const user = await checkUserIdExist(decoded.id);
+        if (!user) {
+            return res.status(401).json({ error: `${decoded.role} ID not found` });
         }
 
-        req.userDetails = rows[0];
+        req.userDetails = user;
+        console.log('middleware role,', req.userDetails)
         next();
     } catch (err) {
-        return res.status(401).json({ error: 'Request is not authorized' });
+        return res.status(401).json({ error: err.message });
     }
 };
 
@@ -55,15 +56,16 @@ const roleBasedAuthMiddleware = (expectedRole) => {
                 return res.status(403).json({ error: `Not authorized as ${expectedRole}` });
             }
 
-            const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [decoded.id]);
-            if (rows.length === 0) {
+            const user = await checkUserIdExist(decoded.id);
+            if (!user) {
                 return res.status(401).json({ error: `${expectedRole} ID not found` });
             }
-            req.user = rows[0];
 
+            req.user = user;
+            console.log('middleware role,', req.user)
             next();
         } catch (err) {
-            return res.status(401).json({ error: 'Request is not authorized' });
+            return res.status(401).json({ error: err.message });
         }
     };
 };
