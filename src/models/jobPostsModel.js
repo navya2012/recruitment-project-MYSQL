@@ -9,15 +9,19 @@ const createJobPostsModel = async (jobPostFields) => {
 
         const query = `
             INSERT INTO job_posts (
-                companyName, role, technologies, experience, location, graduation, languages, noticePeriod, employer_id, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                companyName, role, technologies, experience, location, graduation, languages, noticePeriod, employer_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const [result] = await pool.query(query, [companyName, role, technologies, experience, location, graduation, languages, noticePeriod, employer_id, 'Denied']);
+        const [result] = await pool.query(query, [companyName, role, technologies, experience, location, graduation, languages, noticePeriod, employer_id]);
 
-        return { id: result.insertId, ...jobPostFields };
+        return {
+             message: 'job posts created', 
+             id: result.insertId, 
+             ...jobPostFields 
+            };
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -28,7 +32,7 @@ const getJobPostsByEmployerIdModel = async (employer_id) => {
         const [results] = await pool.query(query, [employer_id]);
         return results;
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -39,7 +43,7 @@ const getJobPostByIdModel = async (job_id) => {
         const [results] = await pool.query(query, [job_id]);
         return results[0];
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -62,7 +66,7 @@ const updateJobPostModel = async (job_id, updateFields) => {
             return { message: "job posts updated successfully" };
         };
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -77,7 +81,7 @@ const deleteJobPostModel = async (job_id, employer_id) => {
             return { message: "job posts deleted successfully" };
         }
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -90,22 +94,22 @@ const getJobAppliedPostsModel = async (employer_id) => {
                 employer_id,
                 companyName,
                 role,
-                status,
-                 employee_id,
-            employee_email,
-            employee_mobileNumber,
-            employee_firstName,
-            employee_lastName, 
-            employee_job_applied_date
-        FROM 
-        job_posts 
-        WHERE 
-       status = 'Applied' AND employer_id = ? `;
+                hasApplied,
+                employee_id,
+                email AS employee_email,
+                mobileNumber AS employee_mobileNumber,
+                firstName AS employee_firstName,
+                lastName AS employee_lastName, 
+                jobAppliedDate AS employee_job_applied_date
+            FROM 
+                job_posts_applied 
+            WHERE 
+                hasApplied = true AND employer_id = ?`;
 
         const [results] = await pool.query(query, [employer_id]);
         return results;
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -117,59 +121,55 @@ const getAllJobPostsModel = async () => {
         const [results] = await pool.query(query);
         return results;
     } catch (err) {
-        throw err;
+        return err.message;
     }
 }
 
-// Update job post application status - applied by employee
-const updateJobAppliedStatusModel = async (jobId, employeeDetails) => {
-
-    try {
-        const {
-            id: employee_id,
-            email: employee_email,
-            mobileNumber: employee_mobileNumber,
-            firstName: employee_firstName,
-            lastName: employee_lastName
-        } = employeeDetails;
-
-        const query = `
-            UPDATE job_posts
-            SET status = 'Applied',
-                employee_id = ?, 
-                employee_email = ?, 
-                employee_mobileNumber = ?, 
-                employee_firstName = ?, 
-                employee_lastName = ?, 
-                employee_job_applied_date = ?
-            WHERE id = ?
-        `;
-
-        const [result] = await pool.query(query, [
-            employee_id,
-            employee_email,
-            employee_mobileNumber,
-            employee_firstName,
-            employee_lastName,
-            new Date(),
-            jobId
-        ]);
-
-        return result;
-    } catch (err) {
-        throw err.message;
+// Check if the employee has already applied for the job
+const getJobPostsAppliedModel = async (jobId, employeeId) => {
+    try{
+    const query = `SELECT * FROM job_posts_applied WHERE jobId = ? AND employee_id = ?`;
+    const [rows] = await pool.query(query, [jobId, employeeId]);
+    return rows[0]; 
     }
+    catch(err){
+        return err.message
+    }
+};
+
+//job applied posts by employee
+const newJobPostsAppliedModel = async (applicationData) => {
+    try{
+    const query = `INSERT INTO job_posts_applied 
+                   (jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    const { jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate } = applicationData;
+
+    const [result] = await pool.query(query, [jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate]);
+
+    return {
+        message: 'Successfully applied for the job', 
+        id: result.insertId, 
+        ...applicationData 
+       };
+}
+catch(err){ 
+    return err.message
+}
 };
 
 
 
+
 module.exports = {
+    getJobPostsAppliedModel,
+    newJobPostsAppliedModel,
     createJobPostsModel,
     getJobPostsByEmployerIdModel,
     updateJobPostModel,
     deleteJobPostModel,
     getJobPostByIdModel,
     getAllJobPostsModel,
-    updateJobAppliedStatusModel,
     getJobAppliedPostsModel
 };

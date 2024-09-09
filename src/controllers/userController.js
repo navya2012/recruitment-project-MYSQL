@@ -17,7 +17,7 @@ const signupValidation = [
 
 
 // Validation reset password
-const resetPasswordValidation = [
+const passwordValidation = [
     check('newPassword')
         .isLength({ min: 8 })
         .withMessage('New password must be at least 8 characters long')
@@ -72,16 +72,31 @@ const verifyOtp = async (req, res) => {
     }
 };
 
+//resend otp
+const resendOtp = async (req, res) => {
+    const { email } = req.userDetails;
+
+    try {
+        const result = await userService.resendOtpService(email);
+        res.status(200).json({ message: result.message });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 //login
 const userLoginDetails = async (req, res) => {
     const { email, password } = req.body;
     try {
         const loginDetails = await userService.loginUserService(email, password)
 
-        const token = createToken({ id: loginDetails.id, role: loginDetails.role });
+        if (!loginDetails.success) {
+            return res.status(400).json({ message: loginDetails.message });
+        }
+
+        const token = createToken({ id: loginDetails.user.id, role: loginDetails.user.role, email: loginDetails.user.email });
 
         res.status(200).json({
-            message: "Successfully Logged In",
             loginDetails,
             token
         });
@@ -103,6 +118,25 @@ const forgotPassword = async (req, res) => {
     }
 };
 
+//update password
+const updatePassword = async (req, res) => {
+    const {  newPassword } = req.body;
+    const { email } = req.userDetails;
+    try {
+        const errors = validationResult(req).formatWith(({ msg }) => {
+            return { msg };
+        });
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: errors.array() });
+        }
+
+        const response = await userService.updatePasswordService(email, newPassword);
+
+        res.status(response.status).json({ message: response.message });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
 
 // Reset password controller
 const resetPassword = async (req, res) => {
@@ -119,7 +153,7 @@ const resetPassword = async (req, res) => {
 
         const response = await userService.resetPasswordService(email, oldPassword, newPassword);
 
-        res.status(response.status).json({ message: response.message });
+        res.status(200).json({ message: response.message });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -132,5 +166,7 @@ module.exports = {
     userLoginDetails,
     forgotPassword,
     resetPassword,
-    resetPasswordValidation
+    passwordValidation,
+    resendOtp,
+    updatePassword
 };

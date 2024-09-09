@@ -2,8 +2,9 @@
 const nodemailer = require("nodemailer");
 
 //generate otp
-const generateOtp = async () => {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+const generateOtp =  () => {
+  const otp =  Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
+  return otp
 };
 
 //otp to email

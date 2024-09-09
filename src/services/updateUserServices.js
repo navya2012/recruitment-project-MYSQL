@@ -1,10 +1,10 @@
 const updateUserModel = require('../models/updateUserModel');
 
 
-const updateUserDetailsService = async (role, id, updateFields) => {
+const updateUserDetailsService = async (role, id,email, updateFields) => {
   try {
 
-    const user = await updateUserModel.checkUserIdAndRoleExist(id, role);
+    const user = await updateUserModel.checkUserDetailsExist(id, role, email);
     if (!user) {
       return { message: "user Id  not found" };
     }
@@ -15,7 +15,7 @@ const updateUserDetailsService = async (role, id, updateFields) => {
       updated = await updateUserModel.updateEmployeeDetails(id, updateFields);
 
       if (!updated) {
-        throw new Error("Employee User not found");
+       return { message:"Employee User not found"};
       }
 
     } else if (role === 'employer') {
@@ -23,16 +23,16 @@ const updateUserDetailsService = async (role, id, updateFields) => {
       updated = await updateUserModel.updateEmployerDetails(id, updateFields);
 
       if (!updated) {
-        throw new Error("Employer User not found");
+      return { message:"Employer User not found"};
       }
 
     } else {
-      throw new Error('Invalid role');
+      return { message:'Invalid role'}
     }
     return updated
 
   } catch (err) {
-    throw err.message;
+    return err.message;
   }
 };
 

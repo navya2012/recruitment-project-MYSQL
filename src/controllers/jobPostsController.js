@@ -1,7 +1,8 @@
 
 const jobPostsService = require('../services/jobPostsServices');
 
-//create job posts
+//employer
+//create job posts 
 const createJobPostsController = async (req, res) => {
     const { companyName, role, technologies, experience, location, graduation, languages, noticePeriod } = req.body
     const employer_id = req.user.id;
@@ -27,7 +28,6 @@ const getJobPostsController = async (req, res) => {
         res.status(500).json(err.message);
     }
 };
-
 
 
 // Update Job Post by ID -employer
@@ -66,9 +66,8 @@ const deleteJobPostController = async (req, res) => {
     }
 };
 
-
 //get job applied posts by employees - employer
-const getJobAppliedPostsController = async (req, res) => {
+const getJobAppliedPostsByEmployer = async (req, res) => {
     const employer_id = req.user.id;
 
     try {
@@ -79,6 +78,7 @@ const getJobAppliedPostsController = async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 };
+
 
 //employee
 // Get all job posts by employees
@@ -92,37 +92,16 @@ const getJobPostsControllerByEmployee = async (req, res) => {
     }
 };
 
-// Update Job Post Application Status
-const updateJobAppliedStatusController = async (req, res) => {
+const JobPostAppliedStatus = async (req, res) => {
     const jobId = req.params.id;
     const employeeDetails = req.user;
 
     try {
-        if (!jobId) {
-            return res.status(404).json({ error: 'Job Post ID is not provided' });
-        }
+        const result = await jobPostsService.JobPostAppliedStatusService(jobId, employeeDetails);
 
-        const result = await jobPostsService.updateJobAppliedStatusService(jobId, employeeDetails);
-
-        if (result.affectedRows > 0) {
-            res.status(200).json({
-                message: 'Applied for this Job',
-                jobId,
-                status: 'Applied',
-                employeeDetails: {
-                    employee_id: employeeDetails.id,
-                    email: employeeDetails.email,
-                    mobileNumber: employeeDetails.mobileNumber,
-                    firstName: employeeDetails.firstName,
-                    lastName: employeeDetails.lastName,
-                    jobAppliedDate: new Date()
-                }
-            });
-        } else {
-            res.status(404).json({ error: 'Job post not found' });
-        }
+        return res.status(201).json(result);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
 
@@ -131,7 +110,7 @@ module.exports = {
     getJobPostsController,
     updateJobPostController,
     deleteJobPostController,
-    updateJobAppliedStatusController,
     getJobPostsControllerByEmployee,
-    getJobAppliedPostsController
+    getJobAppliedPostsByEmployer,
+    JobPostAppliedStatus
 };

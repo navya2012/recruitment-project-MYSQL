@@ -6,7 +6,7 @@ const {  signupValidation } = require("../controllers/userController")
 const { roleBasedAuthMiddleware } = require("../middlewares/UserMiddleware")
 const { updateUserDetails } = require("../controllers/updateUserController")
 const { workingExperienceController } = require("../controllers/experienceController")
-const { createJobPostsController, getJobPostsController, deleteJobPostController, updateJobPostController, getJobPostsControllerByEmployee, updateJobAppliedStatusController,  getJobAppliedPostsController } = require("../controllers/jobPostsController")
+const { createJobPostsController, getJobPostsController, deleteJobPostController, updateJobPostController, getJobPostsControllerByEmployee, updateJobAppliedStatusController,  getJobAppliedPostsController, JobPostAppliedStatus, getJobAppliedPostsByEmployer } = require("../controllers/jobPostsController")
 
 
 //update users
@@ -21,9 +21,9 @@ router.post('/employer/create-recruitment-posts', roleBasedAuthMiddleware('emplo
 router.get('/employer/get-recruitment-posts', roleBasedAuthMiddleware('employer'), getJobPostsController )
 router.patch('/employer/update-recruitment-posts/:id', roleBasedAuthMiddleware('employer'), updateJobPostController )
 router.delete('/employer/delete-recruitment-posts/:id', roleBasedAuthMiddleware('employer'), deleteJobPostController )
-router.get('/employer/applied-job-posts', roleBasedAuthMiddleware('employer'), getJobAppliedPostsController)
+router.get('/employer/applied-job-posts', roleBasedAuthMiddleware('employer'), getJobAppliedPostsByEmployer)
 
-router.get('/employee/get-recruitment-posts', roleBasedAuthMiddleware('employee'),getJobPostsControllerByEmployee);
-router.patch('/employee/update-job-applied-status/:id', roleBasedAuthMiddleware('employee'), updateJobAppliedStatusController )
+router.get('/employee/get-recruitment-posts', getJobPostsControllerByEmployee);
+router.post('/employee/update-job-applied-status/:id', roleBasedAuthMiddleware('employee'), JobPostAppliedStatus )
 
 module.exports = router;

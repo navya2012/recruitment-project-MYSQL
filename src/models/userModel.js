@@ -1,9 +1,12 @@
 const pool = require('../db/connection');
 const bcrypt = require('bcrypt');
 
-const checkUserIdExist = async (userId) => {
+const checkUserIdExist = async (userId, role) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [userId]);
+    const [rows] = await pool.query(
+      'SELECT * FROM userDetails WHERE id = ? AND role = ?',
+      [userId, role]
+    );
 
     if (rows.length === 0) {
       return null;
@@ -11,18 +14,33 @@ const checkUserIdExist = async (userId) => {
     return rows[0];
 
   } catch (error) {
-    throw error;
+    return error;
   }
 }
 
 const checkEmployeeIdExists = async (employee_id) => {
-  const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [employee_id]);
-  return rows[0];
+  try {
+    const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [employee_id]);
+    if (rows.length === 0) {
+      return { message :"Employee ID not found" } 
+    }
+    return rows[0]; 
+  } catch (error) {
+    return error 
+  }
 };
 
+
 const checkEmployerIdExists = async (employer_id) => {
-  const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [employer_id]);
-  return rows[0];
+  try {
+    const [rows] = await pool.query('SELECT * FROM userDetails WHERE id = ?', [employer_id]);
+    if (rows.length === 0) {
+      return { message :"Employer ID not found" } 
+    }
+    return rows[0]; 
+  } catch (error) {
+    return error.message 
+  }
 };
 
 const createUserModel = async (role, email, password, mobileNumber, companyName, companyType, address, firstName, lastName, otp) => {
@@ -42,7 +60,7 @@ const createUserModel = async (role, email, password, mobileNumber, companyName,
 
     return { id: result.insertId, role, email, password: hashedPassword, mobileNumber, companyName, companyType, address, firstName, lastName, otp };
   } catch (err) {
-    throw err;
+    return err;
   }
 };
 
@@ -65,7 +83,7 @@ const checkEmailExist = async (email) => {
 
     return null;
   } catch (err) {
-    throw err;
+    return err;
   }
 };
 
@@ -75,7 +93,7 @@ const findUserByEmail = async (email) => {
     const [rows] = await pool.query('SELECT * FROM userDetails WHERE email = ?', [email]);
     return rows[0];
   } catch (err) {
-    throw err;
+    return err;
   }
 };
 
@@ -84,26 +102,28 @@ const updateUserVerification = async (email) => {
   try {
     await pool.query('UPDATE userDetails SET isVerified = true, otp = NULL WHERE email = ?', [email]);
   } catch (err) {
-    throw err;
+    return err;
   }
 };
 
 //otp for reset password
-const otpForPasswordReset = async (email, otp) => {
-
+const generateOtpModel = async (email, otp) => {
   try {
-    await pool.query('UPDATE userDetails SET otp = ?, isVerified= false WHERE email = ?', [otp, email]);
+    const result = await pool.query('UPDATE userDetails SET otp = ?, isVerified = false WHERE email = ?', [otp, email]);
+    return result
+
   } catch (err) {
-    throw err;
+    return err;
   }
 };
+
 
 //reset password
 const updateUserPassword = async (email, hashedPassword) => {
   try {
     await pool.query('UPDATE userDetails SET password = ? WHERE email = ?', [hashedPassword, email]);
   } catch (err) {
-    throw err;
+    return err;
   }
 };
 
@@ -112,7 +132,7 @@ const checkPasswordMatch = async (password, hashedPassword) => {
   try {
     return await bcrypt.compare(password, hashedPassword);
   } catch (err) {
-    throw err;
+    return err;
   }
 };
 
@@ -123,7 +143,7 @@ module.exports = {
   checkEmailExist,
   findUserByEmail,
   updateUserVerification,
-  otpForPasswordReset,
+  generateOtpModel,
   updateUserPassword,
   checkPasswordMatch,
   checkUserIdExist,

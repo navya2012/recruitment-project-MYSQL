@@ -1,10 +1,14 @@
+
 const pool = require('../db/connection');
 
-
-
 const checkEmployeeIdExperienceData = async (employee_id) => {
-    const [rows] = await pool.query('SELECT * FROM working_experience WHERE employee_id = ?', [employee_id]);
-    return rows[0];
+    try {
+        const [rows] = await pool.query('SELECT * FROM working_experience WHERE employee_id = ?', [employee_id]);
+
+        return rows.length > 0 ? rows[0] : null;
+    } catch (err) {
+        return  err.message
+    }
 };
 
 const createWorkingExperience = async (data) => {
@@ -14,23 +18,35 @@ const createWorkingExperience = async (data) => {
             message: "Working experience created successfully",
             id: result.insertId, ...data
         };
-
+        
     }
     catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
 const updateWorkingExperience = async (employee_id, data) => {
     try {
-
-        const [result] = await pool.query('UPDATE working_experience SET ? WHERE employee_id = ?', [data, employee_id]);
+        const [result] = await pool.query(
+            `UPDATE working_experience
+             SET technologies = ?, experience = ?, location = ?, graduation = ?, languages = ?, noticePeriod = ?
+             WHERE employee_id = ?`,
+            [
+                data.technologies,
+                data.experience,
+                data.location,
+                data.graduation,
+                data.languages,
+                data.noticePeriod,
+                employee_id
+            ]
+        );
 
         if (result.affectedRows > 0) {
             return { message: "Working experience updated successfully" };
         }
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 }
 

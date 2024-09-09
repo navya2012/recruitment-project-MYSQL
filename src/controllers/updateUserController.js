@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const updateUserService = require('../services/updateUserServices')
 
 const updateUserDetails = async (req, res) => {
-  const { role, id } = req.user;
+  const { role, id, email } = req.user;
   try {
     const error = validationResult(req).formatWith(({ msg }) => {
       return { msg };
@@ -24,7 +24,7 @@ const updateUserDetails = async (req, res) => {
       return res.status(400).json({ error: 'Invalid role' });
     }
 
-    const result = await updateUserService.updateUserDetailsService(role, id, updateFields);
+    const result = await updateUserService.updateUserDetailsService(role, id,email, updateFields);
 
     res.status(200).json(result);
   } catch (err) {

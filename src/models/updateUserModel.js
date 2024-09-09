@@ -1,22 +1,21 @@
 const pool = require('../db/connection');
 
-const checkUserIdAndRoleExist = async (userId, role) => {
+const checkUserDetailsExist = async (userId, role, email) => {
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM userDetails WHERE id = ? AND role = ?',
-      [userId, role]
+      'SELECT * FROM userDetails WHERE id = ? AND role = ? AND email = ?',
+      [userId, role, email]
     );
 
     if (rows.length === 0) {
       return null;
     }
-    return rows[0];
+    return rows[0];  // Return the first matched row if found
 
   } catch (error) {
-    throw error.message;
+    return error.message;
   }
 };
-
 
 
 // Update Employee Details
@@ -82,5 +81,5 @@ const updateEmployerDetails = async (id, updateFields) => {
 module.exports = {
   updateEmployeeDetails,
   updateEmployerDetails,
-  checkUserIdAndRoleExist
+  checkUserDetailsExist
 };

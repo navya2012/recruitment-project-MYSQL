@@ -11,9 +11,9 @@ const createJobPostsService = async (employer_id, updateFields) => {
         }
 
         const newJobPosts = await jobPostsModel.createJobPostsModel({ ...updateFields, employer_id });
-        return { message: 'job posts created', newJobPosts };
+        return newJobPosts;
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -32,7 +32,7 @@ const getJobPostsByEmployerIdService = async (employer_id) => {
             return { message: 'No job posts found for this employer.' }
         }
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -51,13 +51,13 @@ const updateJobPostService = async (job_id, employer_id, updateFields) => {
         }
 
         if (jobPost.employer_id !== employer_id) {
-            throw new Error('Unauthorized: You cannot update this job post.');
+            return { message:'Unauthorized: You cannot update this job post.'}
         }
 
         const result = await jobPostsModel.updateJobPostModel(job_id, updateFields);
         return result;
     } catch (err) {
-        throw err;
+        return err.message;
     }
 };
 
@@ -77,13 +77,13 @@ const deleteJobPostService = async (job_id, employer_id) => {
         }
 
         if (jobPost.employer_id !== employer_id) {
-            throw new Error('Unauthorized: You cannot delete this job post.');
+            return { message:'Unauthorized: You cannot delete this job post.'};
         }
 
         const result = await jobPostsModel.deleteJobPostModel(job_id, employer_id);
         return result;
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
@@ -98,12 +98,12 @@ const getJobAppliedPostsService = async (employer_id) => {
         const jobPosts = await jobPostsModel.getJobAppliedPostsModel(employer_id);
 
         if (jobPosts.length === 0) {
-            throw new Error('No job posts found for this employer');
+             return { message:'No job posts found for this employer'};
         }
 
         return jobPosts;
     } catch (err) {
-        throw new Error(`Error fetching job posts: ${err.message}`);
+         return err.message;
     }
 };
 
@@ -113,25 +113,43 @@ const getAllJobPostsService = async () => {
     try {
         return await jobPostsModel.getAllJobPostsModel();
     } catch (err) {
-        throw err.message;
+        return err.message;
     }
 };
 
-// Update job post application status by employee
-const updateJobAppliedStatusService = async (jobId, employeeDetails) => {
-    try {
-        const employeeExists = await checkEmployeeIdExists(employeeDetails.id);
-
-        if (!employeeExists) {
-            return { message: "Employee ID not found" };
-        }
-
-        const result = await jobPostsModel.updateJobAppliedStatusModel(jobId, employeeDetails);
-
-        return result;
-    } catch (err) {
-        throw err;
+// Update Job Applied Status
+const JobPostAppliedStatusService = async (jobId, employeeDetails) => {
+    try{
+    const jobPost = await jobPostsModel.getJobPostByIdModel(jobId);
+    if (!jobPost) {
+      return { message : 'Job post not found'};
     }
+
+    const existingApplication = await jobPostsModel.getJobPostsAppliedModel(jobId, employeeDetails.id);
+    if (existingApplication) {
+        return { message:'You have already applied to this job.'};
+    }
+
+    const jobApplicationData = {
+        jobId: jobPost.id,
+        employer_id: jobPost.employer_id,
+        companyName: jobPost.companyName,
+        role: jobPost.role,
+        hasApplied: true,
+        employee_id: employeeDetails.id,
+        email: employeeDetails.email,
+        mobileNumber: employeeDetails.mobileNumber,
+        firstName: employeeDetails.firstName,
+        lastName: employeeDetails.lastName,
+        jobAppliedDate: new Date()
+    };
+
+    const jobApplication = await jobPostsModel.newJobPostsAppliedModel(jobApplicationData);
+    return jobApplication;
+}
+catch(err){
+    return err.message
+}
 };
 
 module.exports = {
@@ -140,6 +158,6 @@ module.exports = {
     updateJobPostService,
     deleteJobPostService,
     getAllJobPostsService,
-    updateJobAppliedStatusService,
-    getJobAppliedPostsService
+    getJobAppliedPostsService,
+    JobPostAppliedStatusService
 };

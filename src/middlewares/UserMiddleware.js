@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { checkUserIdExist } = require('../models/userModel');
+const { checkUserDetailsExist } = require('../models/updateUserModel');
 
 
 const authUserMiddleware = async (req, res, next) => {
@@ -15,17 +16,18 @@ const authUserMiddleware = async (req, res, next) => {
     try {
 
         const decoded = jwt.verify(token, process.env.JWT_TOKEN);
+
         if (!decoded || !decoded.id) {
             return res.status(401).json({ error: "Invalid token" });
         }
 
-        const user = await checkUserIdExist(decoded.id);
+        const user = await checkUserIdExist(decoded.id, decoded.role );
         if (!user) {
             return res.status(401).json({ error: `${decoded.role} ID not found` });
         }
 
         req.userDetails = user;
-        console.log('middleware role,', req.userDetails)
+        console.log('middleware ,', req.userDetails)
         next();
     } catch (err) {
         return res.status(401).json({ error: err.message });
@@ -35,6 +37,7 @@ const authUserMiddleware = async (req, res, next) => {
 //
 const roleBasedAuthMiddleware = (expectedRole) => {
     return async (req, res, next) => {
+
         const { authorization } = req.headers;
 
         if (!authorization) {
@@ -56,7 +59,7 @@ const roleBasedAuthMiddleware = (expectedRole) => {
                 return res.status(403).json({ error: `Not authorized as ${expectedRole}` });
             }
 
-            const user = await checkUserIdExist(decoded.id);
+            const user = await checkUserDetailsExist(decoded.id, decoded.role, decoded.email);
             if (!user) {
                 return res.status(401).json({ error: `${expectedRole} ID not found` });
             }
