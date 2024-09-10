@@ -1,6 +1,7 @@
 
 const pool = require('../db/connection');
 
+//check employee id exists in experience data
 const checkEmployeeIdExperienceData = async (employee_id) => {
     try {
         const [rows] = await pool.query('SELECT * FROM working_experience WHERE employee_id = ?', [employee_id]);
@@ -11,6 +12,7 @@ const checkEmployeeIdExperienceData = async (employee_id) => {
     }
 };
 
+// new working exp
 const createWorkingExperience = async (data) => {
     try {
         const [result] = await pool.query('INSERT INTO working_experience SET ?', [data]);
@@ -25,6 +27,7 @@ const createWorkingExperience = async (data) => {
     }
 };
 
+//update working exp
 const updateWorkingExperience = async (employee_id, data) => {
     try {
         const [result] = await pool.query(

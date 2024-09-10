@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { checkUserIdExist } = require('../models/userModel');
-const { checkUserDetailsExist } = require('../models/updateUserModel');
+const { checkUserIdExist, checkUserDetailsExist } = require('../models/userModel');
+
 
 
 const authUserMiddleware = async (req, res, next) => {

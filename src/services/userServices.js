@@ -2,13 +2,14 @@
 const bcrypt = require('bcrypt');
 const userModel = require('../models/userModel');
 const { generateOtp, sendOtpForPasswordReset, sendOtpEmail } = require('../utilities/generateOtp');
+const { cloudinary } = require("../utilities/cloudinary");
 
-
+//create new user
 const createUserService = async (role, email, password, mobileNumber, companyName, companyType, address, firstName, lastName, otp) => {
     try {
         const isEmailExists = await userModel.checkEmailExist(email);
         if (isEmailExists) {
-           return { message:"Email already registered"};
+            return { message: "Email already registered" };
         }
 
         const newUser = await userModel.createUserModel(role, email, password, mobileNumber, companyName, companyType, address, firstName, lastName, otp);
@@ -19,7 +20,36 @@ const createUserService = async (role, email, password, mobileNumber, companyNam
     }
 };
 
+//profile image
+const uploadOrUpdateProfileImageService = async (userId, role, email, filePath) => {
+    try {
+        const user = await userModel.checkUserDetailsExist(userId, role, email);
+        if (!user) {
+            return { message: "user not found!" };
+        }
+        
+        // Upload file to Cloudinary
+        const result = await cloudinary.uploader.upload(filePath);
+        const profileImageUrl = result.secure_url;
 
+        // Insert or update the profile image
+        const profileImageResult = await userModel.upsertProfileImage(
+            user.id,
+            user.role,
+            user.email,
+            profileImageUrl
+        );
+
+        return {
+            profileImageResult
+
+        };
+    } catch (error) {
+        return error.message
+    }
+};
+
+// verify otp
 const verifyOtpService = async (email, otp) => {
     try {
         const user = await userModel.findUserByEmail(email);
@@ -45,7 +75,7 @@ const resendOtpService = async (email) => {
     try {
         const user = await userModel.findUserByEmail(email);
         if (!user) {
-            return {  message: "Email not found!" };
+            return { message: "Email not found!" };
         }
 
         const resentOtp = generateOtp();
@@ -60,21 +90,21 @@ const resendOtpService = async (email) => {
     }
 };
 
-
+//login
 const loginUserService = async (email, password) => {
     try {
         const user = await userModel.checkEmailExist(email);
         if (!user) {
-          return { message: "Invalid email ."}
+            return { message: "Invalid email ." }
         }
 
         if (!user.isVerified) {
-            return { message:"Email not verified. Please verify your email before logging in." }
+            return { message: "Email not verified. Please verify your email before logging in." }
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
-            return { message: "Incorrect password."}
+            return { message: "Incorrect password." }
         }
 
         return {
@@ -87,7 +117,7 @@ const loginUserService = async (email, password) => {
     }
 };
 
-
+// send otp for password reset
 const sendResetPasswordOtpService = async (email) => {
     try {
         const user = await userModel.findUserByEmail(email);
@@ -113,7 +143,7 @@ const updatePasswordService = async (email, newPassword) => {
     try {
         const user = await userModel.findUserByEmail(email);
         if (!user) {
-            return {  message: "Email not found!" };
+            return { message: "Email not found!" };
         }
 
         if (!user.isVerified) {
@@ -131,7 +161,7 @@ const updatePasswordService = async (email, newPassword) => {
     }
 };
 
-
+// reset password
 const resetPasswordService = async (email, oldPassword, newPassword) => {
     try {
         const user = await userModel.findUserByEmail(email);
@@ -140,12 +170,12 @@ const resetPasswordService = async (email, oldPassword, newPassword) => {
         }
 
         if (!user.isVerified) {
-            return {  message: "Email not verified. Please verify your email before resetting the password." };
+            return { message: "Email not verified. Please verify your email before resetting the password." };
         }
 
         const match = await userModel.checkPasswordMatch(oldPassword, user.password);
         if (!match) {
-            return {  message: "Old password is incorrect!" };
+            return { message: "Old password is incorrect!" };
         }
 
         if (oldPassword === newPassword) {
@@ -164,7 +194,6 @@ const resetPasswordService = async (email, oldPassword, newPassword) => {
 };
 
 
-
 module.exports = {
     createUserService,
     verifyOtpService,
@@ -172,5 +201,6 @@ module.exports = {
     sendResetPasswordOtpService,
     updatePasswordService,
     resetPasswordService,
-    resendOtpService
+    resendOtpService,
+    uploadOrUpdateProfileImageService
 };

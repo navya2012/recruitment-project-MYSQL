@@ -58,6 +58,19 @@ const userSignupDetails = async (req, res) => {
     }
 };
 
+//profile image
+const userProfileImageUpload = async (req, res) => {
+    const { id, role, email } = req.userDetails;  
+    const filePath = req.file.path;  
+    
+    try {
+        const result = await userService.uploadOrUpdateProfileImageService(id,role,email, filePath);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+}
+
 //verify otp
 const verifyOtp = async (req, res) => {
     const { otp } = req.body;
@@ -168,5 +181,6 @@ module.exports = {
     resetPassword,
     passwordValidation,
     resendOtp,
-    updatePassword
+    updatePassword,
+    userProfileImageUpload
 };

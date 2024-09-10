@@ -16,10 +16,10 @@ const createJobPostsModel = async (jobPostFields) => {
         const [result] = await pool.query(query, [companyName, role, technologies, experience, location, graduation, languages, noticePeriod, employer_id]);
 
         return {
-             message: 'job posts created', 
-             id: result.insertId, 
-             ...jobPostFields 
-            };
+            message: 'job posts created',
+            id: result.insertId,
+            ...jobPostFields
+        };
     } catch (err) {
         return err.message;
     }
@@ -127,40 +127,37 @@ const getAllJobPostsModel = async () => {
 
 // Check if the employee has already applied for the job
 const getJobPostsAppliedModel = async (jobId, employeeId) => {
-    try{
-    const query = `SELECT * FROM job_posts_applied WHERE jobId = ? AND employee_id = ?`;
-    const [rows] = await pool.query(query, [jobId, employeeId]);
-    return rows[0]; 
+    try {
+        const query = `SELECT * FROM job_posts_applied WHERE jobId = ? AND employee_id = ?`;
+        const [rows] = await pool.query(query, [jobId, employeeId]);
+        return rows[0];
     }
-    catch(err){
+    catch (err) {
         return err.message
     }
 };
 
 //job applied posts by employee
 const newJobPostsAppliedModel = async (applicationData) => {
-    try{
-    const query = `INSERT INTO job_posts_applied 
+    try {
+        const query = `INSERT INTO job_posts_applied 
                    (jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    const { jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate } = applicationData;
+        const { jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate } = applicationData;
 
-    const [result] = await pool.query(query, [jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate]);
+        const [result] = await pool.query(query, [jobId, employer_id, companyName, role, hasApplied, employee_id, email, mobileNumber, firstName, lastName, jobAppliedDate]);
 
-    return {
-        message: 'Successfully applied for the job', 
-        id: result.insertId, 
-        ...applicationData 
-       };
-}
-catch(err){ 
-    return err.message
-}
+        return {
+            message: 'Successfully applied for the job',
+            id: result.insertId,
+            ...applicationData
+        };
+    }
+    catch (err) {
+        return err.message
+    }
 };
-
-
-
 
 module.exports = {
     getJobPostsAppliedModel,

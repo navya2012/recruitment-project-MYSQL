@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+//otp to email verify
 const sendOtpEmail = async (email, otp) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -27,6 +28,7 @@ const sendOtpEmail = async (email, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
+// otp for password reset
 const sendOtpForPasswordReset = async (email, otp) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,

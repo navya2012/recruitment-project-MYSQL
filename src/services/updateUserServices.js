@@ -1,10 +1,10 @@
 const updateUserModel = require('../models/updateUserModel');
-
+const { checkUserDetailsExist } = require('../models/userModel');
 
 const updateUserDetailsService = async (role, id,email, updateFields) => {
   try {
 
-    const user = await updateUserModel.checkUserDetailsExist(id, role, email);
+    const user = await checkUserDetailsExist(id, role, email);
     if (!user) {
       return { message: "user Id  not found" };
     }

@@ -66,7 +66,7 @@ const deleteJobPostController = async (req, res) => {
     }
 };
 
-//get job applied posts by employees - employer
+//get job applied posts by employees - check employer
 const getJobAppliedPostsByEmployer = async (req, res) => {
     const employer_id = req.user.id;
 
@@ -92,6 +92,7 @@ const getJobPostsControllerByEmployee = async (req, res) => {
     }
 };
 
+//job applied posts
 const JobPostAppliedStatus = async (req, res) => {
     const jobId = req.params.id;
     const employeeDetails = req.user;
